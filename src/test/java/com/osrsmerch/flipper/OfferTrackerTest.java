@@ -14,7 +14,7 @@ import org.junit.Test;
 public class OfferTrackerTest
 {
 	private final MemoryStore store = new MemoryStore();
-	private final FlipperState state = new FlipperState(store);
+	private final FlipperState state = new FlipperState(store, new com.google.gson.Gson());
 	private final OfferTracker t = TestSupport.tracker(state);
 
 	private List<OfferMessage> queue()
@@ -230,7 +230,7 @@ public class OfferTrackerTest
 	public void loginReplayOfFinishedOfferBooksNothingEvenAfterRestart()
 	{
 		t.onOffer(1, null, null, 1, sell(Phase.DONE, 4151, 5, 5, 2000, 10000), true);
-		FlipperState again = new FlipperState(store);
+		FlipperState again = new FlipperState(store, new com.google.gson.Gson());
 		again.load();
 		OfferTracker t2 = TestSupport.tracker(again);
 		t2.onOffer(1, null, null, 1, sell(Phase.DONE, 4151, 5, 5, 2000, 10000), true);
@@ -243,7 +243,7 @@ public class OfferTrackerTest
 		t.onOffer(1, null, null, 0, buy(Phase.ACTIVE, 4151, 0, 10, 1000, 0), false);
 		t.onOffer(1, null, null, 0, buy(Phase.ACTIVE, 4151, 4, 10, 1000, 3990), false);
 		String id = queue().get(0).offerId;
-		FlipperState again = new FlipperState(store);
+		FlipperState again = new FlipperState(store, new com.google.gson.Gson());
 		again.load();
 		OfferTracker t2 = TestSupport.tracker(again);
 		// login replay of the same state after restart: nothing new
@@ -306,7 +306,7 @@ public class OfferTrackerTest
 	{
 		t.onOffer(1, null, null, 0, buy(Phase.ACTIVE, 4151, 0, 10, 1000, 0), false);
 		t.onOffer(1, null, null, 0, buy(Phase.ACTIVE, 4151, 4, 10, 1000, 3990), false);
-		FlipperState.Snapshot s = FlipperState.parse(store.json);
+		FlipperState.Snapshot s = state.parse(store.json);
 		assertEquals(1, s.queue.size());
 		assertEquals(4, s.accounts.get("1").slots.get(0).sentQuantity);
 	}

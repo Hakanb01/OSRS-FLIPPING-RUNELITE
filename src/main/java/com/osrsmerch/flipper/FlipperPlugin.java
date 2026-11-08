@@ -1,5 +1,6 @@
 package com.osrsmerch.flipper;
 
+import com.google.gson.Gson;
 import com.google.inject.Provides;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,6 +68,8 @@ public class FlipperPlugin extends Plugin implements SendSettings
 	private FlipperApiClient apiClient;
 	@Inject
 	private ScheduledExecutorService executor;
+	@Inject
+	private Gson gson;
 
 	private FlipperState state;
 	private OfferTracker tracker;
@@ -99,7 +102,7 @@ public class FlipperPlugin extends Plugin implements SendSettings
 	@Override
 	protected void startUp()
 	{
-		state = new FlipperState(new ConfigTrackingStore(configManager));
+		state = new FlipperState(new ConfigTrackingStore(configManager), gson);
 		state.load();
 		tracker = new OfferTracker(state, () -> System.currentTimeMillis() / 1000);
 		outbox = new OfferOutbox(state, apiClient, this, System::currentTimeMillis);

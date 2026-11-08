@@ -43,10 +43,10 @@ public class OfferMessageJsonTest
 	public void messagesRoundTripThroughSavedState()
 	{
 		TestSupport.MemoryStore store = new TestSupport.MemoryStore();
-		FlipperState s = new FlipperState(store);
+		FlipperState s = new FlipperState(store, new com.google.gson.Gson());
 		s.enqueue(m);
 		s.save();
-		FlipperState again = new FlipperState(store);
+		FlipperState again = new FlipperState(store, new com.google.gson.Gson());
 		again.load();
 		OfferMessage back = again.queueCopy().get(0);
 		assertEquals(m.totalGp, back.totalGp);

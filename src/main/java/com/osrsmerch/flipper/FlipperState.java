@@ -1,7 +1,6 @@
 package com.osrsmerch.flipper;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -24,7 +23,8 @@ public final class FlipperState
 	public static final int MAX_QUEUE = 2000;
 	public static final int MAX_PARKED = 50;
 
-	private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
+	/** The client's own Gson (Plugin Hub rule: never create a fresh one), without HTML escaping for the saved text. */
+	private final Gson gson;
 
 	/** The JSON form: plain lists and maps. */
 	static final class Snapshot
@@ -66,9 +66,10 @@ public final class FlipperState
 	/** Per offer id: the cumulative counts the current link confirmed. Needed to start a new link from zero. */
 	final LinkedHashMap<String, Acked> acked = new LinkedHashMap<>();
 
-	public FlipperState(TrackingStore store)
+	public FlipperState(TrackingStore store, Gson clientGson)
 	{
 		this.store = store;
+		this.gson = clientGson.newBuilder().disableHtmlEscaping().create();
 	}
 
 	/** Reads the saved state; unreadable data starts empty (and is not overwritten until the next change). */
@@ -81,7 +82,7 @@ public final class FlipperState
 		}
 		try
 		{
-			Snapshot s = GSON.fromJson(json, Snapshot.class);
+			Snapshot s = gson.fromJson(json, Snapshot.class);
 			if (s == null || s.version != VERSION)
 			{
 				log.warn("OSRS Flipping: saved state has an unknown version, starting empty");
@@ -126,7 +127,7 @@ public final class FlipperState
 		s.destination = destination;
 		s.pendingDestination = pendingDestination;
 		s.acked = new LinkedHashMap<>(acked);
-		store.write(GSON.toJson(s));
+		store.write(gson.toJson(s));
 	}
 
 	public synchronized AccountState account(String accountHash)
@@ -290,13 +291,8 @@ public final class FlipperState
 	}
 
 	/** Parsed copy of the whole state, for tests. */
-	static Snapshot parse(String json)
+	Snapshot parse(String json)
 	{
-		return GSON.fromJson(json, Snapshot.class);
-	}
-
-	static Gson gson()
-	{
-		return GSON;
+		return gson.fromJson(json, Snapshot.class);
 	}
 }

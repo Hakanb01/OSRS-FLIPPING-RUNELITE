@@ -14,7 +14,7 @@ import org.junit.Test;
 public class OfferOutboxTest
 {
 	private final MemoryStore store = new MemoryStore();
-	private final FlipperState state = new FlipperState(store);
+	private final FlipperState state = new FlipperState(store, new com.google.gson.Gson());
 	private final FakeSender sender = new FakeSender();
 	private final Settings settings = new Settings();
 	private final AtomicLong now = TestSupport.clock();
@@ -172,7 +172,7 @@ public class OfferOutboxTest
 		fill(2);
 		sender.answers.add(new SendResult(0, 0, null));
 		outbox.tick();
-		FlipperState again = new FlipperState(store);
+		FlipperState again = new FlipperState(store, new com.google.gson.Gson());
 		again.load();
 		assertEquals(1, again.queueSize());
 		FakeSender s2 = new FakeSender();
@@ -181,7 +181,7 @@ public class OfferOutboxTest
 		o2.tick();
 		assertEquals(1, s2.sent.size());
 		assertEquals(2, s2.sent.get(0).quantity);
-		FlipperState third = new FlipperState(store);
+		FlipperState third = new FlipperState(store, new com.google.gson.Gson());
 		third.load();
 		assertEquals(0, third.queueSize());
 	}
